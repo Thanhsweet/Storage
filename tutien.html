@@ -1,0 +1,1675 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tu Tiên - Nghịch Thiên Cải Mệnh</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700;900&family=ZCOOL+XiaoWei&family=Ma+Shan+Zheng&display=swap');
+
+:root {
+  --ink: #0a0a0f;
+  --deep: #0d0d18;
+  --panel: #10101e;
+  --border: #2a2040;
+  --gold: #c9a227;
+  --gold2: #e8c84a;
+  --jade: #3ecf8e;
+  --crimson: #c0392b;
+  --purple: #7c3aed;
+  --sky: #38bdf8;
+  --text: #d4c9a8;
+  --dim: #7a7060;
+  --glow: rgba(201,162,39,0.15);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--ink);
+  color: var(--text);
+  font-family: 'Noto Serif SC', serif;
+  min-height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ── Particle canvas ── */
+#canvas { position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: 0.5; }
+
+/* ── Layout ── */
+#app {
+  position: relative; z-index: 1;
+  display: grid;
+  grid-template-columns: 280px 1fr 260px;
+  grid-template-rows: 60px 1fr;
+  height: 100vh;
+  gap: 0;
+}
+
+/* ── Header ── */
+header {
+  grid-column: 1/-1;
+  background: linear-gradient(90deg, var(--deep) 0%, #1a1030 50%, var(--deep) 100%);
+  border-bottom: 1px solid var(--gold);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 24px;
+  position: relative;
+  overflow: hidden;
+}
+header::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(201,162,39,0.03) 40px, rgba(201,162,39,0.03) 41px);
+}
+.logo {
+  font-family: 'Ma Shan Zheng', cursive;
+  font-size: 24px;
+  color: var(--gold2);
+  text-shadow: 0 0 20px var(--gold), 0 0 40px rgba(201,162,39,0.3);
+  letter-spacing: 4px;
+}
+.header-time {
+  font-size: 12px; color: var(--dim);
+  font-family: monospace;
+  letter-spacing: 2px;
+}
+.realm-badge {
+  font-size: 11px;
+  padding: 3px 12px;
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  border-radius: 2px;
+  letter-spacing: 2px;
+  background: rgba(201,162,39,0.05);
+}
+
+/* ── Left panel ── */
+#left-panel {
+  background: var(--deep);
+  border-right: 1px solid var(--border);
+  padding: 16px;
+  overflow-y: auto;
+  display: flex; flex-direction: column; gap: 16px;
+}
+
+.panel-section {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.panel-title {
+  background: linear-gradient(90deg, rgba(201,162,39,0.1), transparent);
+  padding: 6px 12px;
+  font-size: 11px;
+  color: var(--gold);
+  letter-spacing: 3px;
+  border-bottom: 1px solid var(--border);
+  font-family: 'ZCOOL XiaoWei', serif;
+}
+.panel-body { padding: 12px; }
+
+/* Avatar */
+.avatar-wrap {
+  text-align: center;
+  padding: 16px 12px;
+}
+.avatar {
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  border: 2px solid var(--gold);
+  background: radial-gradient(circle at 40% 35%, #2a1f40, #0a0a14);
+  margin: 0 auto 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 36px;
+  position: relative;
+  box-shadow: 0 0 20px rgba(201,162,39,0.2), inset 0 0 20px rgba(0,0,0,0.5);
+  animation: avatarPulse 4s ease-in-out infinite;
+}
+@keyframes avatarPulse {
+  0%,100% { box-shadow: 0 0 20px rgba(201,162,39,0.2), inset 0 0 20px rgba(0,0,0,0.5); }
+  50% { box-shadow: 0 0 35px rgba(201,162,39,0.4), inset 0 0 20px rgba(0,0,0,0.5); }
+}
+.player-name {
+  font-family: 'ZCOOL XiaoWei', serif;
+  font-size: 18px; color: var(--gold2);
+  margin-bottom: 4px;
+}
+.player-dao {
+  font-size: 11px; color: var(--dim);
+  letter-spacing: 2px;
+}
+
+/* Stats bars */
+.stat-row { margin-bottom: 10px; }
+.stat-label {
+  display: flex; justify-content: space-between;
+  font-size: 11px; margin-bottom: 4px;
+  color: var(--dim);
+}
+.stat-label span:last-child { color: var(--text); }
+.bar-track {
+  height: 6px; background: rgba(255,255,255,0.05);
+  border-radius: 3px; overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+.bar-fill {
+  height: 100%; border-radius: 3px;
+  transition: width 0.6s ease;
+  position: relative;
+}
+.bar-fill::after {
+  content: '';
+  position: absolute; right: 0; top: 0; bottom: 0; width: 4px;
+  background: rgba(255,255,255,0.6);
+  border-radius: 2px;
+  filter: blur(2px);
+}
+.bar-exp { background: linear-gradient(90deg, var(--purple), #a855f7); }
+.bar-hp  { background: linear-gradient(90deg, #991b1b, var(--crimson)); }
+.bar-mp  { background: linear-gradient(90deg, #1d4ed8, var(--sky)); }
+.bar-stamina { background: linear-gradient(90deg, #065f46, var(--jade)); }
+
+/* Currency */
+.currency-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  font-size: 13px;
+}
+.currency-row:last-child { border: none; }
+.currency-icon { font-size: 16px; width: 24px; text-align: center; }
+.currency-val { color: var(--gold2); margin-left: auto; font-weight: bold; }
+
+/* Quick info */
+.info-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.info-card {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 8px;
+  text-align: center;
+}
+.info-card .val {
+  font-size: 16px; color: var(--gold2);
+  font-family: 'ZCOOL XiaoWei', serif;
+}
+.info-card .lbl { font-size: 10px; color: var(--dim); margin-top: 2px; }
+
+/* ── Chat area ── */
+#chat-area {
+  display: flex; flex-direction: column;
+  background: var(--panel);
+  position: relative;
+  overflow: hidden;
+}
+
+#chat-area::before {
+  content: '修';
+  position: absolute;
+  font-family: 'Ma Shan Zheng', cursive;
+  font-size: 300px;
+  color: rgba(201,162,39,0.02);
+  right: -20px; bottom: -40px;
+  pointer-events: none; z-index: 0;
+  line-height: 1;
+}
+
+#messages {
+  flex: 1; overflow-y: auto;
+  padding: 16px 20px;
+  display: flex; flex-direction: column; gap: 8px;
+  position: relative; z-index: 1;
+  scroll-behavior: smooth;
+}
+#messages::-webkit-scrollbar { width: 4px; }
+#messages::-webkit-scrollbar-track { background: transparent; }
+#messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.msg {
+  display: flex; gap: 10px;
+  animation: msgIn 0.3s ease;
+}
+@keyframes msgIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.msg.user { flex-direction: row-reverse; }
+
+.msg-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; flex-shrink: 0;
+  border: 1px solid var(--border);
+}
+.msg.bot .msg-avatar  { background: radial-gradient(#1a1030, #0a0814); border-color: var(--gold); }
+.msg.user .msg-avatar { background: radial-gradient(#1a2030, #0a0814); border-color: var(--sky); }
+.msg.system .msg-avatar { background: radial-gradient(#1a0820, #0a0814); border-color: var(--crimson); }
+
+.msg-bubble {
+  max-width: 80%;
+  padding: 10px 14px;
+  border-radius: 4px;
+  font-size: 13px; line-height: 1.6;
+  position: relative;
+}
+.msg.bot .msg-bubble {
+  background: rgba(201,162,39,0.06);
+  border: 1px solid rgba(201,162,39,0.15);
+  border-left: 2px solid var(--gold);
+  color: var(--text);
+}
+.msg.user .msg-bubble {
+  background: rgba(56,189,248,0.06);
+  border: 1px solid rgba(56,189,248,0.15);
+  border-right: 2px solid var(--sky);
+  color: var(--text);
+}
+.msg.system .msg-bubble {
+  background: rgba(192,57,43,0.06);
+  border: 1px solid rgba(192,57,43,0.2);
+  border-left: 2px solid var(--crimson);
+  color: #e88;
+  font-size: 12px;
+  font-style: italic;
+}
+.msg-time { font-size: 10px; color: var(--dim); margin-top: 4px; }
+
+.msg-bubble pre {
+  white-space: pre-wrap;
+  font-family: 'Noto Serif SC', serif;
+  line-height: 1.8;
+}
+
+/* Special formatted lines */
+.line-gold { color: var(--gold2); }
+.line-jade { color: var(--jade); }
+.line-crimson { color: #ff6b6b; }
+.line-sky { color: var(--sky); }
+.line-dim { color: var(--dim); }
+.line-header {
+  color: var(--gold2);
+  font-weight: bold;
+  font-family: 'ZCOOL XiaoWei', serif;
+  font-size: 14px;
+  letter-spacing: 2px;
+}
+.line-separator { color: var(--border); }
+.exp-bar-ascii { color: var(--purple); letter-spacing: 0; }
+
+/* ── Input area ── */
+#input-area {
+  padding: 12px 20px 16px;
+  border-top: 1px solid var(--border);
+  background: var(--deep);
+  position: relative; z-index: 1;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.input-hint {
+  font-size: 10px; color: var(--dim);
+  letter-spacing: 1px;
+}
+.input-row {
+  display: flex; gap: 8px; align-items: center;
+}
+.cmd-prefix {
+  color: var(--gold); font-family: monospace;
+  font-size: 14px; white-space: nowrap;
+}
+#cmd-input {
+  flex: 1;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 8px 12px;
+  color: var(--text);
+  font-family: 'Noto Serif SC', serif;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+#cmd-input:focus { border-color: var(--gold); box-shadow: 0 0 8px rgba(201,162,39,0.1); }
+#cmd-input::placeholder { color: var(--dim); font-size: 12px; }
+#send-btn {
+  background: linear-gradient(135deg, rgba(201,162,39,0.2), rgba(201,162,39,0.05));
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  padding: 8px 16px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-family: 'ZCOOL XiaoWei', serif;
+  font-size: 13px;
+  letter-spacing: 1px;
+  transition: all 0.2s;
+}
+#send-btn:hover { background: rgba(201,162,39,0.2); box-shadow: 0 0 12px rgba(201,162,39,0.2); }
+
+/* Quick commands */
+.quick-cmds {
+  display: flex; gap: 6px; flex-wrap: wrap;
+}
+.qcmd {
+  font-size: 10px; padding: 3px 8px;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  color: var(--dim);
+  cursor: pointer;
+  background: transparent;
+  font-family: monospace;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.qcmd:hover { border-color: var(--gold); color: var(--gold); background: rgba(201,162,39,0.05); }
+
+/* ── Right panel ── */
+#right-panel {
+  background: var(--deep);
+  border-left: 1px solid var(--border);
+  padding: 16px;
+  overflow-y: auto;
+  display: flex; flex-direction: column; gap: 16px;
+}
+
+/* Realm list */
+.realm-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 10px;
+  border-radius: 3px;
+  font-size: 12px;
+  transition: background 0.15s;
+}
+.realm-item.current {
+  background: rgba(201,162,39,0.08);
+  border: 1px solid rgba(201,162,39,0.2);
+}
+.realm-item .realm-num { color: var(--dim); font-size: 10px; min-width: 18px; }
+.realm-item .realm-name { flex: 1; }
+.realm-item.current .realm-name { color: var(--gold2); }
+.realm-item .realm-lock { color: var(--dim); font-size: 12px; }
+.realm-item.unlocked .realm-lock { color: var(--jade); }
+
+/* Log */
+.log-item {
+  font-size: 11px;
+  padding: 5px 8px;
+  border-left: 2px solid var(--border);
+  color: var(--dim);
+  line-height: 1.5;
+  margin-bottom: 4px;
+}
+.log-item.success { border-color: var(--jade); color: #7ecba1; }
+.log-item.warning { border-color: var(--gold); color: #c9a227; }
+.log-item.danger  { border-color: var(--crimson); color: #e88; }
+.log-item .log-time { font-size: 10px; color: var(--dim); opacity: 0.6; }
+
+/* Meditation timer */
+.med-display {
+  text-align: center; padding: 12px;
+  background: rgba(124,58,237,0.05);
+  border: 1px solid rgba(124,58,237,0.2);
+  border-radius: 4px;
+}
+.med-timer {
+  font-family: monospace; font-size: 28px;
+  color: var(--purple);
+  text-shadow: 0 0 15px rgba(124,58,237,0.5);
+  letter-spacing: 4px;
+}
+.med-label { font-size: 10px; color: var(--dim); margin-top: 4px; letter-spacing: 2px; }
+.med-active { animation: medPulse 2s ease-in-out infinite; }
+@keyframes medPulse {
+  0%,100% { text-shadow: 0 0 15px rgba(124,58,237,0.5); }
+  50% { text-shadow: 0 0 30px rgba(124,58,237,0.9), 0 0 60px rgba(124,58,237,0.3); }
+}
+
+/* Scrollbar */
+#left-panel::-webkit-scrollbar,
+#right-panel::-webkit-scrollbar { width: 3px; }
+#left-panel::-webkit-scrollbar-thumb,
+#right-panel::-webkit-scrollbar-thumb { background: var(--border); }
+
+/* notification toast */
+.toast {
+  position: fixed; top: 70px; left: 50%; transform: translateX(-50%);
+  background: rgba(10,10,20,0.95);
+  border: 1px solid var(--gold);
+  padding: 8px 20px;
+  font-size: 13px; color: var(--gold2);
+  border-radius: 3px;
+  z-index: 999;
+  animation: toastIn 0.3s ease, toastOut 0.3s ease 2.7s forwards;
+  box-shadow: 0 0 20px rgba(201,162,39,0.2);
+  letter-spacing: 1px;
+}
+@keyframes toastIn  { from { opacity:0; transform: translateX(-50%) translateY(-10px); } to { opacity:1; transform: translateX(-50%) translateY(0); } }
+@keyframes toastOut { from { opacity:1; } to { opacity:0; } }
+
+/* Breakthrough overlay */
+.breakthrough-overlay {
+  position: fixed; inset: 0; z-index: 500;
+  background: rgba(0,0,0,0.85);
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column;
+  animation: fadeIn 0.3s ease;
+}
+.breakthrough-text {
+  font-family: 'Ma Shan Zheng', cursive;
+  font-size: 72px;
+  color: var(--gold2);
+  text-shadow: 0 0 60px var(--gold), 0 0 120px rgba(201,162,39,0.5);
+  letter-spacing: 8px;
+  animation: btAnim 0.6s ease;
+}
+@keyframes btAnim { 0%{transform:scale(0.3);opacity:0} 60%{transform:scale(1.1)} 100%{transform:scale(1);opacity:1} }
+.breakthrough-sub { color: var(--text); font-size: 18px; margin-top: 12px; letter-spacing: 4px; }
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+</style>
+</head>
+<body>
+
+<canvas id="canvas"></canvas>
+
+<div id="app">
+  <!-- Header -->
+  <header>
+    <div class="logo">📜 Tu Tiên · 修仙</div>
+    <div class="realm-badge" id="header-realm">Phàm Nhân · 凡人</div>
+    <div class="header-time" id="header-time">--:--:--</div>
+  </header>
+
+  <!-- Left Panel: Character -->
+  <div id="left-panel">
+    <div class="panel-section">
+      <div class="avatar-wrap">
+        <div class="avatar" id="avatar-emoji">🧍</div>
+        <div class="player-name" id="player-name">Đạo Hữu</div>
+        <div class="player-dao" id="player-dao">— Chưa chọn đạo —</div>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-title">CHỈ SỐ TU VI</div>
+      <div class="panel-body">
+        <div class="stat-row">
+          <div class="stat-label"><span>⚡ Tu Vi (EXP)</span><span id="stat-exp-txt">0 / 100</span></div>
+          <div class="bar-track"><div class="bar-fill bar-exp" id="bar-exp" style="width:0%"></div></div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-label"><span>❤️ Sinh Mệnh</span><span id="stat-hp-txt">100 / 100</span></div>
+          <div class="bar-track"><div class="bar-fill bar-hp" id="bar-hp" style="width:100%"></div></div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-label"><span>💙 Linh Lực</span><span id="stat-mp-txt">100 / 100</span></div>
+          <div class="bar-track"><div class="bar-fill bar-mp" id="bar-mp" style="width:100%"></div></div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-label"><span>🌿 Thể Lực</span><span id="stat-stam-txt">100 / 100</span></div>
+          <div class="bar-track"><div class="bar-fill bar-stamina" id="bar-stam" style="width:100%"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-title">LINH THẠCH & VẬT PHẨM</div>
+      <div class="panel-body">
+        <div class="currency-row">
+          <span class="currency-icon">💎</span><span>Linh Thạch</span><span class="currency-val" id="cur-lt">0</span>
+        </div>
+        <div class="currency-row">
+          <span class="currency-icon">💊</span><span>Đan Dược</span><span class="currency-val" id="cur-dan">0</span>
+        </div>
+        <div class="currency-row">
+          <span class="currency-icon">⚗️</span><span>Linh Thảo</span><span class="currency-val" id="cur-thao">0</span>
+        </div>
+        <div class="currency-row">
+          <span class="currency-icon">🏆</span><span>Điểm PK</span><span class="currency-val" id="cur-pk">0</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-title">THÔNG SỐ CHIẾN ĐẤU</div>
+      <div class="panel-body">
+        <div class="info-grid">
+          <div class="info-card"><div class="val" id="stat-atk">10</div><div class="lbl">Công Kích</div></div>
+          <div class="info-card"><div class="val" id="stat-def">5</div><div class="lbl">Phòng Thủ</div></div>
+          <div class="info-card"><div class="val" id="stat-spd">10</div><div class="lbl">Tốc Độ</div></div>
+          <div class="info-card"><div class="val" id="stat-luk">10</div><div class="lbl">May Mắn</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Center: Chat -->
+  <div id="chat-area">
+    <div id="messages"></div>
+    <div id="input-area">
+      <div class="quick-cmds">
+        <button class="qcmd" data-cmd=",tl status">📊 status</button>
+        <button class="qcmd" data-cmd=",tl start">⚡ start</button>
+        <button class="qcmd" data-cmd=",tl stop">🔴 stop</button>
+        <button class="qcmd" data-cmd=",dotpha">🚀 đột phá</button>
+        <button class="qcmd" data-cmd=",tl daily">💎 điểm danh</button>
+        <button class="qcmd" data-cmd=",tl bicanh list">🗺️ bí cảnh</button>
+        <button class="qcmd" data-cmd=",tl pk top">🏆 BXH</button>
+        <button class="qcmd" data-cmd=",tl help">📖 help</button>
+      </div>
+      <div class="input-row">
+        <span class="cmd-prefix">❯</span>
+        <input id="cmd-input" type="text" placeholder="Nhập lệnh... VD: ,tl start  hoặc  ,tl help" autocomplete="off" spellcheck="false"/>
+        <button id="send-btn">施法</button>
+      </div>
+      <div class="input-hint">💡 Gõ ,tl help để xem toàn bộ lệnh</div>
+    </div>
+  </div>
+
+  <!-- Right Panel -->
+  <div id="right-panel">
+    <div class="panel-section">
+      <div class="panel-title">BẾ QUAN</div>
+      <div class="panel-body">
+        <div class="med-display">
+          <div class="med-timer" id="med-timer">00:00:00</div>
+          <div class="med-label" id="med-label">CHƯA BẾ QUAN</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-title">CẢNH GIỚI TU TIÊN</div>
+      <div class="panel-body" id="realm-list" style="padding:8px 10px;"></div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-title">NHẬT KÝ GẦN ĐÂY</div>
+      <div class="panel-body" id="activity-log" style="padding:8px;"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════
+//  GAME STATE
+// ══════════════════════════════════════
+const REALMS = [
+  { name: "Phàm Nhân",    expReq: 0,    tier: 0, icon: "🧍" },
+  { name: "Luyện Khí 1",  expReq: 100,  tier: 1, icon: "💨" },
+  { name: "Luyện Khí 2",  expReq: 250,  tier: 1, icon: "💨" },
+  { name: "Luyện Khí 3",  expReq: 500,  tier: 1, icon: "💨" },
+  { name: "Trúc Cơ 1",    expReq: 1000, tier: 2, icon: "🏛️" },
+  { name: "Trúc Cơ 2",    expReq: 2000, tier: 2, icon: "🏛️" },
+  { name: "Trúc Cơ 3",    expReq: 4000, tier: 2, icon: "🏛️" },
+  { name: "Kim Đan Sơ",   expReq: 8000, tier: 3, icon: "🌕" },
+  { name: "Kim Đan Trung", expReq: 15000, tier: 3, icon: "🌕" },
+  { name: "Kim Đan Đại",  expReq: 30000, tier: 3, icon: "🌕" },
+  { name: "Nguyên Anh",   expReq: 60000, tier: 4, icon: "👁️" },
+  { name: "Hóa Thần",     expReq: 150000, tier: 5, icon: "✨" },
+  { name: "Luyện Hư",     expReq: 400000, tier: 6, icon: "🌌" },
+  { name: "Hợp Thể",      expReq: 1000000, tier: 7, icon: "⚡" },
+  { name: "Đại Thừa",     expReq: 5000000, tier: 8, icon: "🐉" },
+  { name: "Tiên",         expReq: 20000000, tier: 9, icon: "☯️" },
+];
+
+const DAO_TYPES = {
+  nhapma:   { name: "Ma Đạo",    icon: "⚫", desc: "Sát thương bùng nổ +30%, HP -20%",    bonusAtk: 1.3, bonusHp: 0.8, bonusDef: 1.0, bonusSpd: 1.0 },
+  nhapdao:  { name: "Chính Đạo", icon: "☀️", desc: "Cân bằng, ổn định. Tất cả +10%",      bonusAtk: 1.1, bonusHp: 1.1, bonusDef: 1.1, bonusSpd: 1.1 },
+  nhapnho:  { name: "Nho Đạo",   icon: "📖", desc: "Phòng thủ kiên cố +50%, Tốc -20%",   bonusAtk: 0.8, bonusHp: 1.5, bonusDef: 1.5, bonusSpd: 0.8 },
+  nhapquy:  { name: "Quỷ Đạo",   icon: "👻", desc: "Tốc độ xuất thần +40%, DEF -20%",    bonusAtk: 1.2, bonusHp: 1.0, bonusDef: 0.8, bonusSpd: 1.4 },
+  nhapyeu:  { name: "Yêu Đạo",   icon: "🐾", desc: "Sinh mệnh dồi dào +60%, ATK -10%",   bonusAtk: 0.9, bonusHp: 1.6, bonusDef: 1.2, bonusSpd: 1.0 },
+};
+
+const SECRET_REALMS = [
+  { id: 1, name: "Linh Thảo Cốc",     minTime: 10, maxTime: 30, minLT: 5,  maxLT: 20,  minExp: 15, maxExp: 40,  stamCost: 10, icon: "🌿" },
+  { id: 2, name: "Cổ Động Phủ",       minTime: 20, maxTime: 60, minLT: 15, maxLT: 50,  minExp: 40, maxExp: 100, stamCost: 20, icon: "🏚️" },
+  { id: 3, name: "Băng Hỏa Động",     minTime: 30, maxTime: 90, minLT: 30, maxLT: 100, minExp: 80, maxExp: 200, stamCost: 30, icon: "🌋" },
+  { id: 4, name: "Thiên Lôi Bình Nguyên", minTime: 60, maxTime: 180, minLT: 80, maxLT: 250, minExp: 200, maxExp: 500, stamCost: 50, icon: "⚡" },
+  { id: 5, name: "Cổ Tiên Mộ",        minTime: 120, maxTime: 360, minLT: 200, maxLT: 800, minExp: 500, maxExp: 1500, stamCost: 80, icon: "☠️" },
+];
+
+const DAN_RECIPES = [
+  { id: 1, name: "Hồi Khí Đan",   materials: { thao: 2 }, result: { hp: 20 },   icon: "💊" },
+  { id: 2, name: "Hồi Linh Đan",  materials: { thao: 3 }, result: { mp: 30 },   icon: "💙" },
+  { id: 3, name: "Tốc Tu Đan",    materials: { thao: 5, lt: 10 }, result: { exp: 50 }, icon: "⚡" },
+  { id: 4, name: "Đại Hồi Đan",   materials: { thao: 8, lt: 20 }, result: { hp: 80, mp: 80 }, icon: "💎" },
+];
+
+// GLOBAL STATE
+let state = {
+  name: "Đạo Hữu",
+  realmIdx: 0,
+  exp: 0,
+  hp: 100, maxHp: 100,
+  mp: 100, maxMp: 100,
+  stamina: 100, maxStamina: 100,
+  lt: 0,    // linh thach
+  dan: 0,   // dan duoc
+  thao: 0,  // linh thao
+  pkPoints: 0,
+  daoType: null,
+  meditating: false,
+  medStart: null,
+  exploring: false,
+  exploreRealm: null,
+  exploreStart: null,
+  lastDaily: null,
+  pkHistory: [],
+  inventory: [],
+  towerFloor: 1,
+  dailyMissions: [],
+  activityLog: [],
+};
+
+function getCurrentRealm() { return REALMS[state.realmIdx]; }
+function getNextRealm()    { return REALMS[state.realmIdx + 1]; }
+
+function expToNext() {
+  const next = getNextRealm();
+  if (!next) return Infinity;
+  const curr = getCurrentRealm();
+  return next.expReq - curr.expReq;
+}
+function expProgress() {
+  const curr = getCurrentRealm();
+  const next = getNextRealm();
+  if (!next) return 100;
+  const total = next.expReq - curr.expReq;
+  const have  = state.exp - curr.expReq;
+  return Math.min(100, Math.max(0, (have / total) * 100));
+}
+
+function getBaseStats() {
+  const r = state.realmIdx;
+  const dao = state.daoType ? DAO_TYPES[state.daoType] : null;
+  const base = { atk: 10 + r*5, def: 5 + r*3, spd: 10 + r*2, luk: 10 + r };
+  if (dao) {
+    base.atk = Math.round(base.atk * dao.bonusAtk);
+    base.def = Math.round(base.def * dao.bonusDef);
+    base.spd = Math.round(base.spd * dao.bonusSpd);
+  }
+  return base;
+}
+
+function addLog(msg, type = '') {
+  const now = new Date();
+  const t = now.toTimeString().slice(0,5);
+  state.activityLog.unshift({ msg, type, t });
+  if (state.activityLog.length > 20) state.activityLog.pop();
+  renderLog();
+}
+
+// ══════════════════════════════════════
+//  RENDER
+// ══════════════════════════════════════
+function renderAll() {
+  const realm = getCurrentRealm();
+  const stats = getBaseStats();
+  const next  = getNextRealm();
+  const currExpReq = realm.expReq;
+  const nextExpReq = next ? next.expReq : '∞';
+  const haveExp = state.exp - currExpReq;
+  const needExp = next ? (next.expReq - currExpReq) : '∞';
+
+  document.getElementById('avatar-emoji').textContent = realm.icon;
+  document.getElementById('player-name').textContent  = state.name;
+  document.getElementById('player-dao').textContent   = state.daoType ? DAO_TYPES[state.daoType].icon + ' ' + DAO_TYPES[state.daoType].name : '— Chưa chọn đạo —';
+  document.getElementById('header-realm').textContent = realm.name + ' · ' + realm.icon;
+
+  document.getElementById('stat-exp-txt').textContent = `${haveExp} / ${needExp}`;
+  document.getElementById('stat-hp-txt').textContent  = `${state.hp} / ${state.maxHp}`;
+  document.getElementById('stat-mp-txt').textContent  = `${state.mp} / ${state.maxMp}`;
+  document.getElementById('stat-stam-txt').textContent= `${state.stamina} / ${state.maxStamina}`;
+
+  document.getElementById('bar-exp').style.width  = expProgress() + '%';
+  document.getElementById('bar-hp').style.width   = (state.hp/state.maxHp*100) + '%';
+  document.getElementById('bar-mp').style.width   = (state.mp/state.maxMp*100) + '%';
+  document.getElementById('bar-stam').style.width = (state.stamina/state.maxStamina*100) + '%';
+
+  document.getElementById('cur-lt').textContent   = state.lt;
+  document.getElementById('cur-dan').textContent  = state.dan;
+  document.getElementById('cur-thao').textContent = state.thao;
+  document.getElementById('cur-pk').textContent   = state.pkPoints;
+
+  document.getElementById('stat-atk').textContent = stats.atk;
+  document.getElementById('stat-def').textContent = stats.def;
+  document.getElementById('stat-spd').textContent = stats.spd;
+  document.getElementById('stat-luk').textContent = stats.luk;
+
+  renderRealmList();
+}
+
+function renderRealmList() {
+  const el = document.getElementById('realm-list');
+  el.innerHTML = REALMS.slice(0, 10).map((r, i) => {
+    const unlocked = state.exp >= r.expReq || i === 0;
+    const current  = i === state.realmIdx;
+    return `<div class="realm-item ${current?'current':''} ${unlocked&&!current?'unlocked':''}">
+      <span class="realm-num">${i+1}</span>
+      <span style="font-size:14px">${r.icon}</span>
+      <span class="realm-name">${r.name}</span>
+      <span class="realm-lock">${current?'◀':'·'}</span>
+    </div>`;
+  }).join('') + `<div style="text-align:center;font-size:10px;color:var(--dim);padding:4px">... còn ${REALMS.length - 10} cảnh giới</div>`;
+}
+
+function renderLog() {
+  const el = document.getElementById('activity-log');
+  el.innerHTML = state.activityLog.slice(0, 8).map(l =>
+    `<div class="log-item ${l.type}"><span class="log-time">${l.t}</span> ${l.msg}</div>`
+  ).join('');
+}
+
+// Meditation timer
+let medInterval = null;
+function startMedTimer() {
+  if (medInterval) clearInterval(medInterval);
+  medInterval = setInterval(() => {
+    if (!state.meditating) {
+      document.getElementById('med-timer').textContent = '00:00:00';
+      document.getElementById('med-label').textContent = 'CHƯA BẾ QUAN';
+      document.getElementById('med-timer').classList.remove('med-active');
+      clearInterval(medInterval); medInterval = null; return;
+    }
+    const elapsed = Math.floor((Date.now() - state.medStart) / 1000);
+    const h = String(Math.floor(elapsed/3600)).padStart(2,'0');
+    const m = String(Math.floor((elapsed%3600)/60)).padStart(2,'0');
+    const s = String(elapsed%60).padStart(2,'0');
+    document.getElementById('med-timer').textContent = `${h}:${m}:${s}`;
+    document.getElementById('med-label').textContent = 'ĐANG BẾ QUAN ✦';
+    document.getElementById('med-timer').classList.add('med-active');
+  }, 1000);
+}
+
+// Clock
+setInterval(() => {
+  document.getElementById('header-time').textContent = new Date().toTimeString().slice(0,8);
+}, 1000);
+
+// ══════════════════════════════════════
+//  MESSAGES
+// ══════════════════════════════════════
+function addMessage(html, type = 'bot') {
+  const msgs = document.getElementById('messages');
+  const avatars = { bot: '🔮', user: '⚔️', system: '⚠️' };
+  const div = document.createElement('div');
+  div.className = `msg ${type}`;
+  const t = new Date().toTimeString().slice(0,5);
+  div.innerHTML = `
+    <div class="msg-avatar">${avatars[type]||'💬'}</div>
+    <div>
+      <div class="msg-bubble">${html}</div>
+      <div class="msg-time">${t}</div>
+    </div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function fmt(lines) {
+  return lines.map(l => {
+    if (l.startsWith('━') || l.startsWith('─')) return `<span class="line-separator">${l}</span>`;
+    if (l.startsWith('📜') || l.startsWith('🔮') || l.startsWith('⚔️') || l.match(/^[🏆🌟✦]/)) return `<span class="line-header">${l}</span>`;
+    if (l.includes('✅') || l.includes('✓') || l.includes('🟢')) return `<span class="line-jade">${l}</span>`;
+    if (l.includes('❌') || l.includes('⚠️') || l.includes('🔴')) return `<span class="line-crimson">${l}</span>`;
+    if (l.includes('💎') || l.includes('💰') || l.includes('💛') || l.includes('🟡')) return `<span class="line-gold">${l}</span>`;
+    if (l.startsWith('  ·') || l.startsWith('  —') || l.startsWith('   ')) return `<span class="line-dim">${l}</span>`;
+    return l;
+  }).join('<br>');
+}
+
+function toast(msg) {
+  const old = document.querySelector('.toast');
+  if (old) old.remove();
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3100);
+}
+
+function showBreakthrough(newRealm) {
+  const ov = document.createElement('div');
+  ov.className = 'breakthrough-overlay';
+  ov.innerHTML = `<div class="breakthrough-text">突破！</div>
+    <div class="breakthrough-sub">🎉 Đã đột phá lên ${newRealm.icon} ${newRealm.name}！</div>
+    <div style="margin-top:24px;font-size:12px;color:var(--dim)">Nhấn bất kỳ để tiếp tục...</div>`;
+  document.body.appendChild(ov);
+  ov.addEventListener('click', () => ov.remove());
+  setTimeout(() => { if (ov.parentNode) ov.remove(); }, 4000);
+}
+
+// ══════════════════════════════════════
+//  COMMANDS
+// ══════════════════════════════════════
+function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+function handleCommand(raw) {
+  const input = raw.trim();
+  addMessage(input, 'user');
+
+  // normalize
+  const cmd = input.toLowerCase()
+    .replace(/^,tuluyen\s*/,'')
+    .replace(/^,tl\s*/,'')
+    .replace(/^,dotpha/,'dotpha')
+    .trim();
+
+  // ── help ──
+  if (cmd === 'help' || cmd === '') { return cmdHelp(); }
+  if (cmd === 'help coban') { return cmdHelpCoban(); }
+
+  // ── Chọn đạo ──
+  if (['nhapma','nhapdao','nhapnho','nhapquy','nhapyeu'].includes(cmd)) {
+    return cmdChonDao(cmd);
+  }
+
+  // ── Status ──
+  if (cmd === 'status' || cmd === 'trangthai' || cmd === 'info') {
+    return cmdStatus();
+  }
+
+  // ── Start bế quan ──
+  if (cmd === 'start') { return cmdStart(); }
+  if (cmd === 'stop')  { return cmdStop(); }
+
+  // ── Điểm danh ──
+  if (cmd === 'diemdanh' || cmd === 'daily') { return cmdDaily(); }
+
+  // ── Đột phá ──
+  if (cmd === 'dotpha') { return cmdDotpha(); }
+
+  // ── Tự phế ──
+  if (cmd === 'tubao') { return cmdTubao(); }
+
+  // ── Ngâm thơ (Nho) ──
+  if (cmd === 'ngamtho') { return cmdNgamtho(); }
+
+  // ── Bí cảnh ──
+  if (cmd === 'bicanh list' || cmd === 'bicanh') { return cmdBicanhList(); }
+  if (cmd.startsWith('bicanh di')) {
+    const id = parseInt(cmd.replace('bicanh di','').trim()) || 1;
+    return cmdBicanhDi(id);
+  }
+  if (cmd === 'bicanh ve') { return cmdBicanhVe(); }
+
+  // ── Luyện đan ──
+  if (cmd === 'luyendan' || cmd === 'luyendan list') { return cmdLuyenDanList(); }
+  if (cmd.startsWith('luyendan ')) {
+    const parts = cmd.split(' ');
+    return cmdLuyenDan(parseInt(parts[1]), parseInt(parts[2])||1);
+  }
+
+  // ── PK ──
+  if (cmd === 'pk top' || cmd === 'pk top daily') { return cmdPKTop(); }
+  if (cmd === 'pk stats') { return cmdPKStats(); }
+  if (cmd.startsWith('pk ')) {
+    const target = cmd.replace('pk ','').replace('@','');
+    return cmdPK(target);
+  }
+
+  // ── Tower ──
+  if (cmd === 'tower') { return cmdTower(); }
+  if (cmd === 'tower challenge') { return cmdTowerChallenge(); }
+  if (cmd === 'tower top') { return cmdTowerTop(); }
+
+  // ── Nhiệm vụ ──
+  if (cmd === 'nhiemvu') { return cmdNhiemVu(); }
+  if (cmd === 'nhiemvu nhan') { return cmdNhiemVuNhan(); }
+
+  // ── Wiki ──
+  if (cmd === 'wiki' || cmd === 'wiki trangbi') { return cmdWiki(); }
+
+  // ── nhap (generic) ──
+  if (cmd === 'nhap') { return cmdNhap(); }
+
+  // ── Congphap ──
+  if (cmd === 'congphap') { return cmdCongphap(); }
+
+  // Unknown
+  addMessage(fmt([
+    '❌ Lệnh không hợp lệ!',
+    '  · Gõ <b>,tl help</b> để xem danh sách lệnh.',
+  ]));
+}
+
+// ── COMMANDS IMPLEMENTATION ──
+
+function cmdHelp() {
+  addMessage(fmt([
+    '📜 BÍ TỊCH TU TIÊN - MỤC LỤC',
+    '━━━━━━━━━━━━━━━━━━━',
+    '📗 ,tl help coban  — Hướng dẫn cơ bản & Tu Luyện',
+    '⚔️ ,tl pk @user    — Thách đấu PK',
+    '🗺️ ,tl bicanh list — Bí cảnh thám hiểm',
+    '💊 ,tl luyendan    — Công thức luyện đan',
+    '🏯 ,tl tower       — Thiên Tầng Tháp',
+    '📋 ,tl nhiemvu     — Nhiệm vụ hàng ngày',
+    '📊 ,tl status      — Xem chỉ số bản thân',
+    '━━━━━━━━━━━━━━━━━━━',
+    '<span style="color:var(--dim);font-size:12px">💡 Thay ,tl bằng ,tuluyen cũng được!</span>',
+  ]));
+}
+
+function cmdHelpCoban() {
+  addMessage(fmt([
+    '📜 HƯỚNG DẪN CƠ BẢN',
+    '━━━━━━━━━━━━━━━━━━━',
+    '🔰 BƯỚC 1: CHỌN ĐẠO (Chỉ Phàm Nhân)',
+    '  ⚫ ,tl nhapma  — Ma Đạo (Sát thương +30%)',
+    '  ☀️ ,tl nhapdao — Chính Đạo (Cân bằng)',
+    '  📖 ,tl nhapnho — Nho Đạo (Phòng thủ cao)',
+    '  👻 ,tl nhapquy — Quỷ Đạo (Tốc độ)',
+    '  🐾 ,tl nhapyeu — Yêu Đạo (HP nhiều)',
+    '━━━━━━━━━━━━━━━━━━━',
+    '⚡ BƯỚC 2: TU LUYỆN',
+    '  ,tl start  — Bắt đầu bế quan',
+    '  ,tl stop   — Kết thúc nhận EXP',
+    '  ,tl status — Xem trạng thái',
+    '━━━━━━━━━━━━━━━━━━━',
+    '🚀 BƯỚC 3: ĐỘT PHÁ',
+    '  ,dotpha — Đột phá cảnh giới (cần đủ EXP)',
+    '━━━━━━━━━━━━━━━━━━━',
+    '💎 MẸO: ,tl daily — Điểm danh miễn phí Linh Thạch!',
+  ]));
+}
+
+function cmdChonDao(daoKey) {
+  if (state.realmIdx !== 0) {
+    addMessage(fmt(['❌ Chỉ có thể chọn đạo khi còn là <b>Phàm Nhân</b>!']));
+    return;
+  }
+  if (state.daoType) {
+    addMessage(fmt([`❌ Bạn đã chọn ${DAO_TYPES[state.daoType].name} rồi! Dùng ,tl tubao để reset nếu muốn đổi.`]));
+    return;
+  }
+  state.daoType = daoKey;
+  const dao = DAO_TYPES[daoKey];
+  const maxHpMult = dao.bonusHp;
+  state.maxHp = Math.round(100 * maxHpMult);
+  state.hp = state.maxHp;
+  state.maxMp = Math.round(100 * (dao.bonusAtk > 1 ? 1.2 : 1));
+  state.mp = state.maxMp;
+  addLog(`Gia nhập ${dao.name}`, 'success');
+  addMessage(fmt([
+    `✅ Chúc mừng! Bạn đã gia nhập <b>${dao.icon} ${dao.name}</b>!`,
+    `  · ${dao.desc}`,
+    '━━━━━━━━━━━━━━━━━━━',
+    '⚡ Hãy dùng ,tl start để bắt đầu tu luyện!',
+  ]));
+  toast(`✦ Gia nhập ${dao.name}！`);
+  renderAll();
+}
+
+function cmdStatus() {
+  const realm = getCurrentRealm();
+  const next  = getNextRealm();
+  const stats = getBaseStats();
+  const prog  = expProgress().toFixed(1);
+  const haveExp = state.exp - realm.expReq;
+  const needExp = next ? (next.expReq - realm.expReq) : '∞';
+  const bars = Math.floor(expProgress() / 5);
+  const expBar = '█'.repeat(bars) + '░'.repeat(20 - bars);
+
+  addMessage(fmt([
+    `📊 TRẠNG THÁI TU VI`,
+    '━━━━━━━━━━━━━━━━━━━',
+    `👤 Tên:    <b>${state.name}</b>`,
+    `${realm.icon} Cảnh Giới: <b>${realm.name}</b>`,
+    `${state.daoType ? DAO_TYPES[state.daoType].icon + ' Đạo: ' + DAO_TYPES[state.daoType].name : '⚪ Đạo: Chưa chọn'}`,
+    '━━━━━━━━━━━━━━━━━━━',
+    `<span class="exp-bar-ascii">⚡ [${expBar}] ${prog}%</span>`,
+    `  Tu Vi: ${haveExp} / ${needExp}`,
+    `❤️  Sinh Mệnh: ${state.hp} / ${state.maxHp}`,
+    `💙 Linh Lực:  ${state.mp} / ${state.maxMp}`,
+    `🌿 Thể Lực:   ${state.stamina} / ${state.maxStamina}`,
+    '━━━━━━━━━━━━━━━━━━━',
+    `⚔️  ATK: ${stats.atk}   🛡️ DEF: ${stats.def}   💨 SPD: ${stats.spd}`,
+    '━━━━━━━━━━━━━━━━━━━',
+    `💎 Linh Thạch: ${state.lt}   💊 Đan: ${state.dan}   ⚗️ Thảo: ${state.thao}`,
+    state.meditating ? '🔮 Trạng thái: <span class="line-jade">Đang bế quan...</span>' : '💤 Trạng thái: Nghỉ ngơi',
+  ]));
+}
+
+function cmdStart() {
+  if (!state.daoType && state.realmIdx === 0) {
+    addMessage(fmt([
+      '⚠️ Bạn chưa chọn đạo!',
+      '  · ,tl nhapma  — Ma Đạo',
+      '  · ,tl nhapdao — Chính Đạo',
+      '  · ,tl nhapnho — Nho Đạo',
+      '  · ,tl nhapquy — Quỷ Đạo',
+      '  · ,tl nhapyeu — Yêu Đạo',
+    ]));
+    return;
+  }
+  if (state.meditating) {
+    addMessage(fmt(['⚠️ Bạn đang trong bế quan! Dùng <b>,tl stop</b> để kết thúc.']));
+    return;
+  }
+  state.meditating = true;
+  state.medStart = Date.now();
+  startMedTimer();
+  addLog('Bắt đầu bế quan', 'success');
+  addMessage(fmt([
+    '🔮 Bế quan tu luyện bắt đầu...',
+    '  · Tập trung linh khí, cảm ngộ thiên đạo.',
+    '  · Dùng <b>,tl stop</b> để kết thúc và nhận EXP.',
+    '<span style="color:var(--dim);font-size:12px">💡 Tu luyện càng lâu, EXP nhận càng nhiều!</span>',
+  ]));
+  toast('🔮 Bắt đầu bế quan!');
+  renderAll();
+}
+
+function cmdStop() {
+  if (!state.meditating) {
+    addMessage(fmt(['❌ Bạn chưa bắt đầu bế quan! Dùng <b>,tl start</b>']));
+    return;
+  }
+  const elapsed = Math.floor((Date.now() - state.medStart) / 1000);
+  if (elapsed < 5) {
+    addMessage(fmt(['⚠️ Cần tu luyện ít nhất <b>5 giây</b> mới có thể kết thúc!']));
+    return;
+  }
+  state.meditating = false;
+
+  // EXP calculation
+  const minutes = elapsed / 60;
+  const dao = state.daoType ? DAO_TYPES[state.daoType] : null;
+  let baseExp = Math.floor(minutes * 10 + rand(2, 8));
+  if (dao) {
+    // Nho gets more thao, Ma gets more dmg items
+  }
+  // Bonus for longer sessions
+  if (minutes > 30) baseExp = Math.floor(baseExp * 1.2);
+  if (minutes > 60) baseExp = Math.floor(baseExp * 1.5);
+
+  const thaoGain = rand(0, Math.max(1, Math.floor(minutes)));
+  const ltBonus  = rand(0, Math.floor(minutes / 2));
+
+  state.exp += baseExp;
+  state.thao += thaoGain;
+  state.lt += ltBonus;
+  state.mp = Math.min(state.maxMp, state.mp + Math.floor(baseExp / 5));
+
+  const h = String(Math.floor(elapsed/3600)).padStart(2,'0');
+  const m = String(Math.floor((elapsed%3600)/60)).padStart(2,'0');
+  const s = String(elapsed%60).padStart(2,'0');
+
+  addLog(`+${baseExp} EXP từ bế quan`, 'success');
+  addMessage(fmt([
+    '✅ Kết thúc bế quan!',
+    `  · Thời gian: <b>${h}:${m}:${s}</b>`,
+    `  💛 +${baseExp} Tu Vi (EXP)`,
+    thaoGain > 0 ? `  ⚗️ +${thaoGain} Linh Thảo` : '',
+    ltBonus  > 0 ? `  💎 +${ltBonus} Linh Thạch` : '',
+    '━━━━━━━━━━━━━━━━━━━',
+    expProgress() >= 100 ? '🚀 <span class="line-jade">Tu Vi đã đầy! Dùng ,dotpha để đột phá!</span>' : `⚡ Tiến độ: ${expProgress().toFixed(1)}%`,
+  ].filter(Boolean)));
+  toast(`✅ +${baseExp} EXP!`);
+  renderAll();
+}
+
+function cmdDaily() {
+  const today = new Date().toDateString();
+  if (state.lastDaily === today) {
+    addMessage(fmt([
+      '❌ Đã điểm danh hôm nay rồi!',
+      '  · Hãy quay lại vào ngày mai.',
+    ]));
+    return;
+  }
+  state.lastDaily = today;
+  const ltReward  = rand(20, 50);
+  const expReward = rand(10, 30);
+  const thaoReward= rand(1, 5);
+  state.lt   += ltReward;
+  state.exp  += expReward;
+  state.thao += thaoReward;
+
+  // restore some stamina
+  state.stamina = Math.min(state.maxStamina, state.stamina + 30);
+
+  addLog('Điểm danh thành công', 'success');
+  addMessage(fmt([
+    '✅ ĐIỂM DANH THÀNH CÔNG!',
+    '━━━━━━━━━━━━━━━━━━━',
+    `  💎 +${ltReward} Linh Thạch`,
+    `  💛 +${expReward} Tu Vi`,
+    `  ⚗️ +${thaoReward} Linh Thảo`,
+    `  🌿 +30 Thể Lực`,
+    '━━━━━━━━━━━━━━━━━━━',
+    '💡 Hãy điểm danh mỗi ngày để nhận thưởng!',
+  ]));
+  toast('💎 Điểm danh thành công!');
+  renderAll();
+}
+
+function cmdDotpha() {
+  const next = getNextRealm();
+  if (!next) {
+    addMessage(fmt(['🏆 Bạn đã đạt đỉnh tu tiên — <b>Tiên Cảnh</b>!']));
+    return;
+  }
+  if (state.exp < next.expReq) {
+    const need = next.expReq - state.exp;
+    addMessage(fmt([
+      '❌ Tu Vi chưa đủ để đột phá!',
+      `  · Cần thêm <b>${need}</b> Tu Vi`,
+      `  · Tiếp tục bế quan: ,tl start`,
+    ]));
+    return;
+  }
+
+  // Breakthrough chance
+  const chance = state.daoType === 'nhapdao' ? 0.85 : 0.75;
+  if (Math.random() > chance && state.realmIdx >= 4) {
+    // Fail at higher realms
+    const lossExp = Math.floor((state.exp - getCurrentRealm().expReq) * 0.3);
+    state.exp -= lossExp;
+    const hpLoss = Math.floor(state.maxHp * 0.2);
+    state.hp = Math.max(1, state.hp - hpLoss);
+    addLog('Đột phá thất bại!', 'danger');
+    addMessage(fmt([
+      '💥 ĐỘT PHÁ THẤT BẠI!',
+      '  · Thiên đạo vô tình, tâm ma xâm nhập...',
+      `  ❌ -${lossExp} Tu Vi`,
+      `  ❌ -${hpLoss} Sinh Mệnh`,
+      '━━━━━━━━━━━━━━━━━━━',
+      '💡 Hãy hồi phục rồi thử lại!',
+    ]));
+    toast('💥 Đột phá thất bại!');
+    renderAll();
+    return;
+  }
+
+  state.realmIdx++;
+  const newRealm = getCurrentRealm();
+  const stats = getBaseStats();
+  const hpIncrease = Math.round(newRealm.tier * 50 * (state.daoType ? DAO_TYPES[state.daoType].bonusHp : 1));
+  const mpIncrease = Math.round(newRealm.tier * 30);
+  state.maxHp += hpIncrease; state.hp = state.maxHp;
+  state.maxMp += mpIncrease; state.mp = state.maxMp;
+  state.stamina = state.maxStamina;
+  state.lt += rand(30, 100);
+
+  addLog(`Đột phá → ${newRealm.name}`, 'success');
+  showBreakthrough(newRealm);
+  addMessage(fmt([
+    `🚀 ĐỘT PHÁ THÀNH CÔNG!`,
+    '━━━━━━━━━━━━━━━━━━━',
+    `  ${newRealm.icon} Cảnh giới mới: <b>${newRealm.name}</b>`,
+    `  ❤️  Sinh Mệnh tăng +${hpIncrease} → ${state.maxHp}`,
+    `  💙 Linh Lực tăng +${mpIncrease} → ${state.maxMp}`,
+    `  ⚔️  ATK: ${stats.atk}  🛡️ DEF: ${stats.def}`,
+    '━━━━━━━━━━━━━━━━━━━',
+    '🌟 Thiên đạo chứng kiến, cảnh giới thăng!',
+  ]));
+  toast(`🎉 Đột phá lên ${newRealm.name}!`);
+  renderAll();
+}
+
+function cmdTubao() {
+  state.realmIdx = 0;
+  state.exp = 0;
+  state.daoType = null;
+  state.maxHp = 100; state.hp = 100;
+  state.maxMp = 100; state.mp = 100;
+  state.stamina = 100;
+  addLog('Tự phế tu vi', 'warning');
+  addMessage(fmt([
+    '💔 Tự phế thành công. Tu vi trở về Phàm Nhân.',
+    '  · Chọn đạo mới: ,tl nhapma / nhapdao / nhapnho...',
+  ]));
+  renderAll();
+}
+
+function cmdNgamtho() {
+  if (state.daoType !== 'nhapnho') {
+    addMessage(fmt(['❌ Ngâm thơ chỉ dành cho <b>Nho Đạo</b>!']));
+    return;
+  }
+  const roll = Math.random();
+  let reward = '';
+  if (roll < 0.1) { state.lt += 100; reward = '💎 +100 Linh Thạch (Đại Cát!)'; }
+  else if (roll < 0.3) { state.thao += 10; reward = '⚗️ +10 Linh Thảo'; }
+  else if (roll < 0.6) { state.exp += 30; reward = '💛 +30 Tu Vi'; }
+  else { state.mp = state.maxMp; reward = '💙 Linh Lực hồi phục hoàn toàn'; }
+
+  const poems = ['Vô vi nhi vô bất vi...', 'Thiên địa bất nhân, vạn vật vi sô cẩu...', 'Đạo khả đạo, phi thường đạo...'];
+  addMessage(fmt([
+    '📖 Ngâm thơ...',
+    `  "<i>${poems[rand(0,poems.length-1)]}</i>"`,
+    '━━━━━━━━━━━━━━━━━━━',
+    `  🎲 Phần thưởng: ${reward}`,
+  ]));
+  renderAll();
+}
+
+function cmdBicanhList() {
+  const lines = ['🗺️ DANH SÁCH BÍ CẢNH', '━━━━━━━━━━━━━━━━━━━'];
+  SECRET_REALMS.forEach(r => {
+    lines.push(`${r.icon} [${r.id}] ${r.name}`);
+    lines.push(`   · Thời gian: ${r.minTime}-${r.maxTime}s  |  Thể Lực: -${r.stamCost}`);
+    lines.push(`   · EXP: ${r.minExp}-${r.maxExp}  |  LT: ${r.minLT}-${r.maxLT}`);
+  });
+  lines.push('━━━━━━━━━━━━━━━━━━━');
+  lines.push('💡 Dùng: ,tl bicanh di [ID]');
+  addMessage(fmt(lines));
+}
+
+function cmdBicanhDi(id) {
+  const realm = SECRET_REALMS.find(r => r.id === id);
+  if (!realm) { addMessage(fmt(['❌ ID bí cảnh không hợp lệ! Xem: ,tl bicanh list'])); return; }
+  if (state.exploring) { addMessage(fmt(['❌ Đang thám hiểm rồi! Dùng ,tl bicanh ve'])); return; }
+  if (state.stamina < realm.stamCost) {
+    addMessage(fmt([`❌ Thể lực không đủ! Cần ${realm.stamCost}, có ${state.stamina}`]));
+    return;
+  }
+  state.exploring = true;
+  state.exploreRealm = realm;
+  state.exploreStart = Date.now();
+  state.stamina -= realm.stamCost;
+  addLog(`Thám hiểm ${realm.name}`, 'warning');
+  addMessage(fmt([
+    `🌟 Bắt đầu thám hiểm: <b>${realm.icon} ${realm.name}</b>`,
+    `  · Thể lực đã tiêu: -${realm.stamCost}`,
+    `  · Dự kiến: ${realm.minTime}-${realm.maxTime} giây`,
+    '━━━━━━━━━━━━━━━━━━━',
+    '⚔️ Hãy dùng <b>,tl bicanh ve</b> sau khi thám hiểm xong!',
+  ]));
+  toast(`🗺️ Đang thám hiểm ${realm.name}...`);
+  renderAll();
+}
+
+function cmdBicanhVe() {
+  if (!state.exploring) {
+    addMessage(fmt(['❌ Bạn không đang thám hiểm!']));
+    return;
+  }
+  const elapsed = (Date.now() - state.exploreStart) / 1000;
+  const r = state.exploreRealm;
+  if (elapsed < r.minTime) {
+    addMessage(fmt([`⚠️ Cần ít nhất <b>${r.minTime}s</b> nữa mới có thể về! (${Math.ceil(r.minTime - elapsed)}s còn lại)`]));
+    return;
+  }
+
+  state.exploring = false;
+  const expGain = rand(r.minExp, r.maxExp);
+  const ltGain  = rand(r.minLT,  r.maxLT);
+  const thaoGain= rand(1, 5);
+  state.exp  += expGain;
+  state.lt   += ltGain;
+  state.thao += thaoGain;
+
+  const loot = Math.random() < 0.3 ? `  🎁 Vật phẩm đặc biệt: ${['Linh Tinh', 'Cổ Phù', 'Linh Quặng'][rand(0,2)]}` : '';
+  addLog(`Về từ ${r.name} +${expGain}EXP`, 'success');
+  addMessage(fmt([
+    `✅ Trở về từ <b>${r.icon} ${r.name}</b>!`,
+    '━━━━━━━━━━━━━━━━━━━',
+    `  💛 +${expGain} Tu Vi`,
+    `  💎 +${ltGain} Linh Thạch`,
+    `  ⚗️ +${thaoGain} Linh Thảo`,
+    loot,
+  ].filter(Boolean)));
+  toast(`✅ Thám hiểm thành công!`);
+  renderAll();
+}
+
+function cmdLuyenDanList() {
+  const lines = ['💊 DANH SÁCH LUYỆN ĐAN', '━━━━━━━━━━━━━━━━━━━'];
+  DAN_RECIPES.forEach(r => {
+    const mats = Object.entries(r.materials).map(([k,v]) => `${v} ${k==='thao'?'Linh Thảo':k==='lt'?'Linh Thạch':'?'}`).join(', ');
+    const res  = Object.entries(r.result).map(([k,v]) => `+${v} ${k==='hp'?'HP':k==='mp'?'MP':k==='exp'?'EXP':'?'}`).join(', ');
+    lines.push(`${r.icon} [${r.id}] ${r.name}`);
+    lines.push(`   · Nguyên liệu: ${mats}`);
+    lines.push(`   · Hiệu quả: ${res}`);
+  });
+  lines.push('━━━━━━━━━━━━━━━━━━━');
+  lines.push('💡 Dùng: ,tl luyendan [ID] [Số lượng]');
+  addMessage(fmt(lines));
+}
+
+function cmdLuyenDan(id, qty) {
+  const recipe = DAN_RECIPES.find(r => r.id === id);
+  if (!recipe) { addMessage(fmt(['❌ ID công thức không đúng! Xem: ,tl luyendan'])); return; }
+  qty = Math.max(1, Math.min(qty||1, 10));
+  const mats = recipe.materials;
+  if ((mats.thao||0)*qty > state.thao || (mats.lt||0)*qty > state.lt) {
+    addMessage(fmt(['❌ Không đủ nguyên liệu!', `  Cần: Linh Thảo x${(mats.thao||0)*qty}, Linh Thạch x${(mats.lt||0)*qty}`]));
+    return;
+  }
+  // Deduct materials
+  state.thao -= (mats.thao||0)*qty;
+  state.lt   -= (mats.lt||0)*qty;
+
+  // 20% chance explode
+  if (Math.random() < 0.2) {
+    const hpLoss = rand(10, 30);
+    state.hp = Math.max(1, state.hp - hpLoss);
+    addMessage(fmt([
+      '💥 LÒ NỔ!',
+      '  · Đan dược thất bại, lò phát nổ!',
+      `  ❌ -${hpLoss} Sinh Mệnh`,
+    ]));
+    toast('💥 Lò nổ!');
+    renderAll(); return;
+  }
+
+  const res = recipe.result;
+  state.dan += qty;
+  if (res.hp) state.hp  = Math.min(state.maxHp, state.hp + res.hp*qty);
+  if (res.mp) state.mp  = Math.min(state.maxMp, state.mp + res.mp*qty);
+  if (res.exp) state.exp += res.exp*qty;
+
+  addLog(`Luyện ${qty}x ${recipe.name}`, 'success');
+  addMessage(fmt([
+    `✅ Luyện thành công <b>${qty}x ${recipe.icon} ${recipe.name}</b>!`,
+    Object.entries(res).map(([k,v]) => `  💛 +${v*qty} ${k==='hp'?'HP':k==='mp'?'MP':'EXP'}`).join('\n'),
+  ]));
+  toast(`✅ ${qty}x ${recipe.name} thành công!`);
+  renderAll();
+}
+
+function cmdPK(target) {
+  if (!target || target === state.name.toLowerCase()) {
+    addMessage(fmt(['❌ Không thể PK với chính mình!']));
+    return;
+  }
+  if (state.stamina < 20) {
+    addMessage(fmt(['❌ Thể lực không đủ! Cần ít nhất 20.']));
+    return;
+  }
+  state.stamina -= 20;
+
+  const enemyRealm = Math.max(0, state.realmIdx + rand(-2, 2));
+  const enemyAtk   = 10 + enemyRealm * 5 + rand(-5, 5);
+  const myAtk      = getBaseStats().atk + rand(-3, 5);
+  const myDef      = getBaseStats().def;
+
+  const won = myAtk > enemyAtk || (myAtk === enemyAtk && Math.random() > 0.5);
+  const pkExp  = rand(10, 30);
+  const ltGain = rand(5, 20);
+
+  if (won) {
+    state.exp      += pkExp;
+    state.lt       += ltGain;
+    state.pkPoints += 1;
+    const hpLoss = Math.max(0, rand(0, Math.floor(state.maxHp * 0.15)));
+    state.hp = Math.max(1, state.hp - hpLoss);
+    addLog(`Thắng PK vs ${target}`, 'success');
+    addMessage(fmt([
+      `⚔️ KẾT QUẢ CHIẾN ĐẤU VS <b>${target}</b>`,
+      '━━━━━━━━━━━━━━━━━━━',
+      `  ✅ THẮNG LỢI! Đối thủ sức chiến: ${enemyAtk}`,
+      `  💛 +${pkExp} Tu Vi`,
+      `  💎 +${ltGain} Linh Thạch`,
+      hpLoss > 0 ? `  ❤️ -${hpLoss} Sinh Mệnh` : '',
+      `  🏆 Điểm PK: ${state.pkPoints}`,
+    ].filter(Boolean)));
+    toast('⚔️ Thắng PK!');
+  } else {
+    const hpLoss = Math.floor(state.maxHp * rand(15, 30) / 100);
+    state.hp = Math.max(1, state.hp - hpLoss);
+    addLog(`Thua PK vs ${target}`, 'danger');
+    addMessage(fmt([
+      `⚔️ KẾT QUẢ CHIẾN ĐẤU VS <b>${target}</b>`,
+      '━━━━━━━━━━━━━━━━━━━',
+      `  ❌ THẤT BẠI! Đối thủ sức chiến: ${enemyAtk}`,
+      `  ❤️ -${hpLoss} Sinh Mệnh`,
+      '  💡 Hãy luyện tập thêm!',
+    ]));
+    toast('❌ Thua PK...');
+  }
+  renderAll();
+}
+
+function cmdPKTop() {
+  const fakeTop = [
+    { name: 'Thiên Tuyệt Kiếm', realm: 'Đại Thừa', pts: 999 },
+    { name: 'Hắc Long Vương',   realm: 'Hóa Thần',  pts: 756 },
+    { name: 'Tuyết Nguyệt',     realm: 'Nguyên Anh', pts: 512 },
+    { name: 'Vô Danh Đạo Nhân', realm: 'Kim Đan',    pts: 388 },
+    { name: state.name,         realm: getCurrentRealm().name, pts: state.pkPoints },
+  ].sort((a,b) => b.pts - a.pts);
+
+  const lines = ['🏆 BẢNG XẾP HẠNG CAO THỦ', '━━━━━━━━━━━━━━━━━━━'];
+  fakeTop.forEach((p, i) => {
+    const medal = ['🥇','🥈','🥉','4️⃣','5️⃣'][i] || `${i+1}.`;
+    const highlight = p.name === state.name ? ' ← Bạn' : '';
+    lines.push(`${medal} ${p.name} [${p.realm}] — ${p.pts} điểm${highlight}`);
+  });
+  addMessage(fmt(lines));
+}
+
+function cmdPKStats() {
+  const stats = getBaseStats();
+  addMessage(fmt([
+    `⚔️ HỒ SƠ CHIẾN LỰC`,
+    '━━━━━━━━━━━━━━━━━━━',
+    `  ATK: ${stats.atk}  |  DEF: ${stats.def}`,
+    `  SPD: ${stats.spd}  |  LUK: ${stats.luk}`,
+    `  🏆 Điểm PK: ${state.pkPoints}`,
+    `  ⚔️ Sức chiến tổng: ${stats.atk + stats.def + stats.spd}`,
+  ]));
+}
+
+function cmdTower() {
+  addMessage(fmt([
+    '🏯 THIÊN TẦNG THÁP',
+    '━━━━━━━━━━━━━━━━━━━',
+    `  Tầng hiện tại: <b>${state.towerFloor}</b>`,
+    `  Boss: ${['🐍 Linh Xà','🐻 Hắc Gấu','🦅 Thiên Ưng','👹 Ma Tướng','🐉 Liệt Long'][Math.min(4, Math.floor(state.towerFloor/5))]
+    } (Tầng ${state.towerFloor})`,
+    '━━━━━━━━━━━━━━━━━━━',
+    '⚔️ ,tl tower challenge — Thách đấu boss',
+    '📊 ,tl tower top — Bảng xếp hạng',
+  ]));
+}
+
+function cmdTowerChallenge() {
+  if (state.stamina < 15) {
+    addMessage(fmt(['❌ Thể lực không đủ! (cần 15)']));
+    return;
+  }
+  state.stamina -= 15;
+  const bossAtk = 8 + state.towerFloor * 4;
+  const myPower = getBaseStats().atk + state.realmIdx * 5;
+  const won = myPower >= bossAtk || Math.random() > 0.4;
+
+  if (won) {
+    state.towerFloor++;
+    const ltReward = state.towerFloor * 5;
+    state.lt += ltReward;
+    state.exp += state.towerFloor * 10;
+    addMessage(fmt([
+      `✅ CHIẾN THẮNG TẦNG ${state.towerFloor - 1}!`,
+      `  → Lên tầng <b>${state.towerFloor}</b>`,
+      `  💎 +${ltReward} Linh Thạch`,
+      `  💛 +${state.towerFloor*10} Tu Vi`,
+    ]));
+    toast(`🏯 Lên tầng ${state.towerFloor}!`);
+  } else {
+    const hpLoss = Math.floor(state.maxHp * 0.2);
+    state.hp = Math.max(1, state.hp - hpLoss);
+    addMessage(fmt([
+      `❌ Thất bại tầng ${state.towerFloor}...`,
+      `  ❤️ -${hpLoss} Sinh Mệnh`,
+      '  💡 Tăng cường tu luyện rồi thử lại!',
+    ]));
+  }
+  renderAll();
+}
+
+function cmdTowerTop() {
+  addMessage(fmt([
+    '🏯 BXH THIÊN TẦNG THÁP',
+    '━━━━━━━━━━━━━━━━━━━',
+    `🥇 Thiên Tuyệt Kiếm — Tầng 99`,
+    `🥈 Hắc Long Vương — Tầng 87`,
+    `🥉 Tuyết Nguyệt — Tầng 72`,
+    `4️⃣ ${state.name} — Tầng ${state.towerFloor} ← Bạn`,
+  ]));
+}
+
+function cmdNhiemVu() {
+  const missions = [
+    { name: 'Tu luyện 1 lần', done: state.exp > 0, reward: '20 EXP' },
+    { name: 'Điểm danh hôm nay', done: state.lastDaily === new Date().toDateString(), reward: '30 LT' },
+    { name: 'Thắng 1 trận PK', done: state.pkPoints > 0, reward: '50 EXP' },
+    { name: 'Thám hiểm bí cảnh', done: !state.exploring && state.activityLog.some(l=>l.msg.includes('Thám hiểm')), reward: '40 LT + 5 Thảo' },
+  ];
+  const lines = ['📋 NHIỆM VỤ HÀNG NGÀY', '━━━━━━━━━━━━━━━━━━━'];
+  missions.forEach((m, i) => {
+    lines.push(`${m.done ? '✅' : '⬜'} [${i+1}] ${m.name}`);
+    lines.push(`   → Thưởng: ${m.reward}`);
+  });
+  lines.push('━━━━━━━━━━━━━━━━━━━');
+  lines.push('💡 ,tl nhiemvu nhan — Nhận thưởng đã hoàn thành');
+  addMessage(fmt(lines));
+}
+
+function cmdNhiemVuNhan() {
+  const today = new Date().toDateString();
+  let total = 0;
+  if (state.exp > 0 && !state._m1) { state._m1 = today; state.exp += 20; total++; }
+  if (state.lastDaily === today && !state._m2) { state._m2 = today; state.lt += 30; total++; }
+  if (total === 0) {
+    addMessage(fmt(['⚠️ Không có nhiệm vụ nào để nhận thưởng!']));
+  } else {
+    addMessage(fmt([`✅ Nhận thưởng <b>${total}</b> nhiệm vụ thành công!`]));
+    renderAll();
+  }
+}
+
+function cmdWiki() {
+  addMessage(fmt([
+    '📖 TỪ ĐIỂN TU TIÊN',
+    '━━━━━━━━━━━━━━━━━━━',
+    '⚡ Tu Vi (EXP): Điểm kinh nghiệm tích lũy',
+    '💎 Linh Thạch: Tiền tệ chính trong giới tu tiên',
+    '⚗️ Linh Thảo: Nguyên liệu luyện đan',
+    '🌿 Thể Lực: Cần để thám hiểm và PK',
+    '🔮 Bế Quan: Tu luyện tập trung để tích EXP',
+    '🚀 Đột Phá: Nâng cảnh giới khi đủ Tu Vi',
+    '━━━━━━━━━━━━━━━━━━━',
+    'CẢNH GIỚI: Phàm Nhân → Luyện Khí → Trúc Cơ → Kim Đan → Nguyên Anh → Hóa Thần → Luyện Hư → Hợp Thể → Đại Thừa → Tiên',
+  ]));
+}
+
+function cmdNhap() {
+  addMessage(fmt([
+    '📜 BÍ TỊCH TU TIÊN - MỤC LỤC',
+    '👉 Gõ ,tl help [Danh Mục] để xem chi tiết.',
+    '  📗 help coban — Hướng dẫn cơ bản',
+    '  ⚔️  pk top — Bảng xếp hạng',
+    '  🗺️  bicanh list — Bí cảnh',
+    '  💊 luyendan — Luyện đan',
+    '  🏯 tower — Thiên Tầng Tháp',
+  ]));
+}
+
+function cmdCongphap() {
+  addMessage(fmt([
+    '⚡ DANH SÁCH CÔNG PHÁP',
+    '━━━━━━━━━━━━━━━━━━━',
+    '🌀 Càn Khôn Nhất Khí Công  — [Ma Đạo] Tăng sát thương',
+    '☀️  Thái Dương Thần Kinh    — [Chính Đạo] Cân bằng',
+    '📖 Vô Vi Chân Kinh         — [Nho Đạo] Tăng phòng thủ',
+    '👻 Ảo Ảnh Bộ Pháp          — [Quỷ Đạo] Tăng tốc độ',
+    '🐾 Vạn Thú Hòa Hợp Công   — [Yêu Đạo] Tăng sinh mệnh',
+    '━━━━━━━━━━━━━━━━━━━',
+    '💡 Chọn đạo để tự động sở hữu công pháp tương ứng!',
+  ]));
+}
+
+// ══════════════════════════════════════
+//  INPUT HANDLING
+// ══════════════════════════════════════
+document.getElementById('send-btn').onclick = sendCmd;
+document.getElementById('cmd-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') sendCmd();
+});
+document.querySelectorAll('.qcmd').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.getElementById('cmd-input').value = btn.dataset.cmd;
+    sendCmd();
+  });
+});
+
+function sendCmd() {
+  const input = document.getElementById('cmd-input');
+  const val = input.value.trim();
+  if (!val) return;
+  input.value = '';
+  handleCommand(val);
+}
+
+// ══════════════════════════════════════
+//  PARTICLES
+// ══════════════════════════════════════
+(function particles() {
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  window.addEventListener('resize', () => { canvas.width=window.innerWidth; canvas.height=window.innerHeight; });
+
+  const pts = Array.from({length:60}, () => ({
+    x: Math.random()*canvas.width,
+    y: Math.random()*canvas.height,
+    r: Math.random()*1.5+0.3,
+    dx: (Math.random()-.5)*0.3,
+    dy: -Math.random()*0.4-0.1,
+    o: Math.random(),
+    hue: Math.random()<0.5 ? 45 : 200,
+  }));
+
+  function draw() {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    pts.forEach(p => {
+      p.x += p.dx; p.y += p.dy; p.o -= 0.002;
+      if (p.y < 0 || p.o <= 0) {
+        p.x=Math.random()*canvas.width; p.y=canvas.height; p.o=Math.random()*0.5+0.2;
+      }
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+      ctx.fillStyle = `hsla(${p.hue},80%,60%,${p.o})`;
+      ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+// ══════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════
+renderAll();
+renderLog();
+addMessage(fmt([
+  '📜 BÍ TỊCH TU TIÊN - HƯỚNG DẪN TÂN THỦ',
+  '━━━━━━━━━━━━━━━━━━━',
+  '🌟 CHÀO MỪNG ĐẠO HỮU GIA NHẬP GIỚI TU TIÊN!',
+  '  Để bắt đầu hành trình nghịch thiên cải mệnh,',
+  '  hãy nắm vững các bước sau:',
+  '━━━━━━━━━━━━━━━━━━━',
+  '1️⃣ BƯỚC 1: CHỌN ĐẠO (Phàm Nhân)',
+  '  ⚫ ,tl nhapma  — Ma Đạo (Sát thương bùng nổ)',
+  '  ☀️ ,tl nhapdao — Chính Đạo (Cân bằng, ổn định)',
+  '  📖 ,tl nhapnho — Nho Đạo (Phòng thủ kiên cố)',
+  '  👻 ,tl nhapquy — Quỷ Đạo (Tốc độ xuất thần)',
+  '  🐾 ,tl nhapyeu — Yêu Đạo (Sinh mệnh dồi dào)',
+  '━━━━━━━━━━━━━━━━━━━',
+  '2️⃣ BƯỚC 2: TU LUYỆN (Tích lũy EXP)',
+  '  ,tl start — Bắt đầu bế quan',
+  '  ,tl stop  — Kết thúc nhận EXP',
+  '━━━━━━━━━━━━━━━━━━━',
+  '3️⃣ BƯỚC 3: ĐỘT PHÁ (Thăng cấp)',
+  '  ,dotpha — Khi đầy EXP, thăng cảnh giới',
+  '━━━━━━━━━━━━━━━━━━━',
+  '💎 Gõ ,tl help để xem toàn bộ lệnh!',
+]));
+</script>
+</body>
+</html>
